@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COPYBOT ZRX — Account koppelen</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Instrument+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #EDD06A;
+    --bg: #060606;
+    --card: #0D0C0A;
+    --border: rgba(201,168,76,0.16);
+    --border-bright: rgba(201,168,76,0.5);
+    --text: #EAE0CC;
+    --muted: #6B6050;
+    --white: #ffffff;
+    --error: #E5484D;
+    --success: #4ADE80;
+  }
+
+  body {
+    font-family: 'Instrument Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  .wrap {
+    max-width: 480px;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  .brand {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .brand-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--border-bright);
+    border-radius: 100px;
+    padding: 5px 14px;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 20px;
+    background: rgba(201,168,76,0.06);
+  }
+
+  .brand-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--gold);
+    animation: blink 1.8s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+
+  .brand h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 56px;
+    color: var(--white);
+    letter-spacing: 0.03em;
+    line-height: 1;
+  }
+
+  .brand p {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 10px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 36px 32px;
+  }
+
+  .progress {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 28px;
+  }
+  .progress-seg {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-seg.done { background: var(--gold); }
+
+  .step { display: none; }
+  .step.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from{opacity:0; transform: translateY(6px)} to{opacity:1; transform: translateY(0)} }
+
+  .step-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+
+  .step-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 24px;
+  }
+
+  .field { margin-bottom: 18px; }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 7px;
+    font-weight: 500;
+  }
+
+  .field input, .field select {
+    width: 100%;
+    background: #151310;
+    border: 1px solid var(--border);
+    color: var(--white);
+    border-radius: 3px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: 'Instrument Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .field input:focus, .field select:focus {
+    border-color: var(--gold);
+  }
+
+  .field input::placeholder { color: #4a4438; }
+
+  .field-hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .row-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #151310;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .toggle-label { font-size: 14px; color: var(--text); }
+  .toggle-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .toggle {
+    width: 42px; height: 24px;
+    background: #3a3428;
+    border-radius: 12px;
+    position: relative;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .toggle.on { background: var(--gold); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    top: 3px; left: 3px;
+    transition: transform 0.2s;
+  }
+  .toggle.on::after { transform: translateX(18px); }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 28px;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 14px;
+    border-radius: 3px;
+    border: none;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn:active { opacity: 0.8; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-primary { background: var(--gold); color: #000; }
+  .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--muted); flex: 0 0 90px; }
+
+  .error-box {
+    background: rgba(229,72,77,0.08);
+    border: 1px solid rgba(229,72,77,0.3);
+    color: var(--error);
+    font-size: 13px;
+    padding: 12px 14px;
+    border-radius: 3px;
+    margin-bottom: 18px;
+    display: none;
+  }
+  .error-box.show { display: block; }
+
+  .summary {
+    background: #151310;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px;
+    margin-bottom: 20px;
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(201,168,76,0.08);
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-label { color: var(--muted); }
+  .summary-value { color: var(--white); font-weight: 600; font-family: 'DM Mono', monospace; }
+
+  .disclaimer-box {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+    padding: 14px;
+    background: #151310;
+    border-radius: 3px;
+    margin-bottom: 20px;
+  }
+
+  .check-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 20px;
+    cursor: pointer;
+  }
+  .check-row input { margin-top: 3px; accent-color: var(--gold); }
+  .check-row span { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* Success state */
+  .success-screen { text-align: center; padding: 20px 0; }
+  .success-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: rgba(74,222,128,0.1);
+    border: 1px solid rgba(74,222,128,0.3);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 26px;
+  }
+  .success-screen h2 {
+    font-size: 20px;
+    color: var(--white);
+    margin-bottom: 10px;
+  }
+  .success-screen p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 4px;
+  }
+
+  .footer-note {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 24px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="brand">
+    <div class="brand-badge">
+      <div class="brand-dot"></div>
+      Account Onboarding
+    </div>
+    <h1>ZRX</h1>
+    <p>Koppel jouw MT5 account in 3 stappen</p>
+  </div>
+
+  <div class="card">
+    <div class="progress">
+      <div class="progress-seg done" id="prog-1"></div>
+      <div class="progress-seg" id="prog-2"></div>
+      <div class="progress-seg" id="prog-3"></div>
+    </div>
+
+    <div class="error-box" id="error-box"></div>
+
+    <!-- STEP 1: Identity -->
+    <div class="step active" id="step-1">
+      <div class="step-label">Stap 1 / 3</div>
+      <div class="step-title">Wie ben je?</div>
+
+      <div class="field">
+        <label>Volledige naam</label>
+        <input type="text" id="f-name" placeholder="bijv. Jan Jansen">
+      </div>
+
+      <div class="field">
+        <label>Telegram gebruikersnaam</label>
+        <input type="text" id="f-telegram" placeholder="@jouwnaam">
+        <div class="field-hint">Zodat wij je kunnen bereiken bij vragen</div>
+      </div>
+
+      <div class="field">
+        <label>E-mailadres</label>
+        <input type="email" id="f-email" placeholder="naam@voorbeeld.nl">
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="nextStep(1)">Volgende →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: MT5 Account -->
+    <div class="step" id="step-2">
+      <div class="step-label">Stap 2 / 3</div>
+      <div class="step-title">Jouw MT5 account</div>
+
+      <div class="field">
+        <label>MT5 login (accountnummer)</label>
+        <input type="text" id="f-login" placeholder="bijv. 24619963" inputmode="numeric">
+      </div>
+
+      <div class="field">
+        <label>MT5 wachtwoord (trading, niet investor)</label>
+        <input type="password" id="f-password" placeholder="••••••••">
+        <div class="field-hint">Wordt versleuteld opgeslagen. Nooit gedeeld.</div>
+      </div>
+
+      <div class="field">
+        <label>Server naam</label>
+        <input type="text" id="f-server" placeholder="bijv. VantageInternational-Live14">
+        <div class="field-hint">Te vinden in MT5 → rechtsonder in beeld</div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="prevStep(2)">←</button>
+        <button class="btn btn-primary" onclick="nextStep(2)">Volgende →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Risk settings -->
+    <div class="step" id="step-3">
+      <div class="step-label">Stap 3 / 3</div>
+      <div class="step-title">Risico instellingen</div>
+
+      <div class="field">
+        <label>Lotsize per leg</label>
+        <input type="number" id="f-lot" placeholder="0.02" step="0.01" value="0.02">
+        <div class="field-hint">Elke trade opent 3 legs met deze lotsize per stuk</div>
+      </div>
+
+      <div class="toggle-row" onclick="toggleFunded()">
+        <div>
+          <div class="toggle-label">Funded account</div>
+          <div class="toggle-sub">Max 1% risico, max 3 trades per richting</div>
+        </div>
+        <div class="toggle" id="funded-toggle"></div>
+      </div>
+
+      <div class="summary" id="summary-box"></div>
+
+      <div class="disclaimer-box">
+        ⚠️ Trading brengt risico's met zich mee. Je kunt (een deel van) je inleg verliezen.
+        Onze bot voert automatisch trades uit op jouw account op basis van signalen.
+        Wij zijn niet verantwoordelijk voor verliezen. Handel alleen met kapitaal dat je kunt missen.
+      </div>
+
+      <div class="check-row" onclick="toggleAgree()">
+        <input type="checkbox" id="f-agree">
+        <span>Ik heb de disclaimer gelezen en ga akkoord dat COPYBOT ZRX automatisch trades uitvoert op mijn MT5 account op basis van bovenstaande instellingen.</span>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="prevStep(3)">←</button>
+        <button class="btn btn-primary" id="submit-btn" onclick="submitForm()" disabled>Account koppelen</button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="step" id="step-success">
+      <div class="success-screen">
+        <div class="success-icon">✓</div>
+        <h2>Aanvraag ontvangen!</h2>
+        <p>We hebben je gegevens veilig ontvangen.</p>
+        <p>Ons team koppelt je account binnen 24 uur en stuurt je een bevestiging via Telegram.</p>
+        <p style="margin-top:16px; color:#4a4438;">Je kunt dit venster nu sluiten.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    Vragen? Stuur ons een bericht op Telegram.<br>
+    © 2026 COPYBOT ZRX
+  </div>
+</div>
+
+<script>
+  let currentStep = 1;
+  let fundedMode = false;
+  let agreed = false;
+
+  // ⚠️ Replace with your actual backend URL once deployed
+  const SUBMIT_ENDPOINT = "/submit-account";
+
+  function showError(msg) {
+    const box = document.getElementById("error-box");
+    box.textContent = msg;
+    box.classList.add("show");
+  }
+
+  function clearError() {
+    document.getElementById("error-box").classList.remove("show");
+  }
+
+  function nextStep(from) {
+    clearError();
+
+    if (from === 1) {
+      const name = document.getElementById("f-name").value.trim();
+      const tg = document.getElementById("f-telegram").value.trim();
+      const email = document.getElementById("f-email").value.trim();
+      if (!name || !tg || !email) {
+        showError("Vul alle velden in om verder te gaan.");
+        return;
+      }
+      if (!email.includes("@")) {
+        showError("Vul een geldig e-mailadres in.");
+        return;
+      }
+    }
+
+    if (from === 2) {
+      const login = document.getElementById("f-login").value.trim();
+      const pass = document.getElementById("f-password").value.trim();
+      const server = document.getElementById("f-server").value.trim();
+      if (!login || !pass || !server) {
+        showError("Vul al je MT5 gegevens in.");
+        return;
+      }
+      if (!/^\d+$/.test(login)) {
+        showError("MT5 login moet een nummer zijn.");
+        return;
+      }
+    }
+
+    document.getElementById("step-" + from).classList.remove("active");
+    document.getElementById("step-" + (from + 1)).classList.add("active");
+    document.getElementById("prog-" + (from + 1)).classList.add("done");
+    currentStep = from + 1;
+
+    if (currentStep === 3) updateSummary();
+  }
+
+  function prevStep(from) {
+    clearError();
+    document.getElementById("step-" + from).classList.remove("active");
+    document.getElementById("step-" + (from - 1)).classList.add("active");
+    document.getElementById("prog-" + from).classList.remove("done");
+    currentStep = from - 1;
+  }
+
+  function toggleFunded() {
+    fundedMode = !fundedMode;
+    document.getElementById("funded-toggle").classList.toggle("on", fundedMode);
+    updateSummary();
+  }
+
+  function toggleAgree() {
+    agreed = document.getElementById("f-agree").checked;
+    document.getElementById("submit-btn").disabled = !agreed;
+  }
+
+  function updateSummary() {
+    const login = document.getElementById("f-login").value.trim();
+    const server = document.getElementById("f-server").value.trim();
+    const lot = document.getElementById("f-lot").value.trim() || "0.02";
+
+    document.getElementById("summary-box").innerHTML = `
+      <div class="summary-row"><span class="summary-label">MT5 login</span><span class="summary-value">${login}</span></div>
+      <div class="summary-row"><span class="summary-label">Server</span><span class="summary-value">${server}</span></div>
+      <div class="summary-row"><span class="summary-label">Lot per leg</span><span class="summary-value">${lot}</span></div>
+      <div class="summary-row"><span class="summary-label">Funded mode</span><span class="summary-value">${fundedMode ? "AAN" : "UIT"}</span></div>
+    `;
+  }
+
+  document.getElementById("f-agree").addEventListener("change", toggleAgree);
+
+  async function submitForm() {
+    if (!agreed) return;
+
+    const btn = document.getElementById("submit-btn");
+    btn.disabled = true;
+    btn.textContent = "Bezig met versturen...";
+
+    const payload = {
+      name: document.getElementById("f-name").value.trim(),
+      telegram: document.getElementById("f-telegram").value.trim(),
+      email: document.getElementById("f-email").value.trim(),
+      mt5_login: document.getElementById("f-login").value.trim(),
+      mt5_password: document.getElementById("f-password").value.trim(),
+      mt5_server: document.getElementById("f-server").value.trim(),
+      lot_per_leg: parseFloat(document.getElementById("f-lot").value.trim() || "0.02"),
+      funded_mode: fundedMode,
+    };
+
+    try {
+      const resp = await fetch(SUBMIT_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await resp.json();
+
+      if (data.ok) {
+        document.getElementById("step-3").classList.remove("active");
+        document.getElementById("step-success").classList.add("active");
+      } else {
+        showError(data.error || "Er ging iets mis. Probeer het opnieuw.");
+        btn.disabled = false;
+        btn.textContent = "Account koppelen";
+      }
+    } catch (e) {
+      showError("Verbindingsfout. Check je internet en probeer opnieuw.");
+      btn.disabled = false;
+      btn.textContent = "Account koppelen";
+    }
+  }
+</script>
+
+</body>
+</html>
